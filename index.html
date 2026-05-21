@@ -3,347 +3,587 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CPC & Procedure Code Lookup — HMRC CDS</title>
+<title>Customs Code Lookup — TecEx</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0e0f13;--surface:#16181f;--surface2:#1e2029;--border:#2a2d3a;
-  --accent:#4f8aff;--accent2:#00c896;--amber:#ffb340;--red:#ff5555;
-  --text:#e4e6f0;--muted:#7b7f94;
-  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  --blue:#0057B8;
+  --blue-dark:#00408a;
+  --blue-light:#e8f0fb;
+  --blue-mid:#ccddf5;
+  --bg:#f5f6f8;
+  --surface:#ffffff;
+  --surface2:#f0f2f5;
+  --border:#dde1e9;
+  --border-strong:#c4cad6;
+  --text:#0f1724;
+  --text2:#3d4a5c;
+  --muted:#6b7894;
+  --green:#0a7c4f;
+  --green-light:#e6f5ef;
+  --amber:#b35c00;
+  --amber-light:#fff4e6;
+  --red:#c0000a;
+  --red-light:#fff0f0;
+  --mono:'DM Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --radius:6px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.04);
+  --shadow-lg:0 4px 16px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06);
 }
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px}
-.logo{background:linear-gradient(135deg,#1a3fcc,#00c896);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-.header h1{font-size:14px;font-weight:600}
-.header p{font-size:11px;color:var(--muted);margin-top:1px}
-.header-links{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.header-links a{font-size:11px;color:var(--muted);text-decoration:none;font-family:var(--mono)}
-.header-links a:hover{color:var(--accent)}
-.data-badge{font-size:10px;font-family:var(--mono);background:rgba(0,200,150,0.1);color:var(--accent2);border:1px solid rgba(0,200,150,0.3);padding:2px 8px;border-radius:3px;white-space:nowrap}
-.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 6px;overflow-x:auto}
-.tab{padding:10px 16px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;color:var(--muted);transition:all 0.15s;user-select:none}
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.main{max-width:980px;margin:0 auto;padding:24px}
-.loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:12px}
-.loading-screen.hidden{display:none}
-.spinner{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-screen p{font-size:13px;color:var(--muted)}
-.search-wrap{margin-bottom:16px}
-.search-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px}
-.search-row{display:flex;gap:8px}
-.search-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color 0.2s}
-.search-input:focus{border-color:var(--accent)}
-.search-input::placeholder{color:var(--muted)}
-.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:opacity 0.15s;white-space:nowrap}
-.btn:hover{opacity:0.85}
-.btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
-.btn-ghost:hover{color:var(--text);opacity:1}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:20px}
-.chip{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 12px;font-size:11px;color:var(--muted);cursor:pointer;transition:all 0.12s}
-.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,138,255,0.06)}
+
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--blue);color:#fff;padding:0 28px;height:52px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,87,184,0.3)}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-icon{width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.topbar-name{font-weight:600;font-size:15px;letter-spacing:-0.2px}
+.topbar-divider{width:1px;height:18px;background:rgba(255,255,255,0.25)}
+.topbar-subtitle{font-size:12px;color:rgba(255,255,255,0.7);font-weight:400}
+.topbar-links{margin-left:auto;display:flex;gap:6px;align-items:center}
+.topbar-link{font-size:11px;color:rgba(255,255,255,0.75);text-decoration:none;padding:4px 10px;border-radius:4px;transition:background 0.15s;font-family:var(--mono)}
+.topbar-link:hover{background:rgba(255,255,255,0.15);color:#fff}
+.data-pill{font-size:10px;font-family:var(--mono);background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);padding:3px 10px;border-radius:12px;border:1px solid rgba(255,255,255,0.25)}
+
+/* ── TABS ── */
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:0;position:sticky;top:52px;z-index:40;box-shadow:0 1px 0 var(--border)}
+.tab{padding:12px 18px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--muted);transition:all 0.15s;white-space:nowrap;user-select:none;display:flex;align-items:center;gap:6px}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.tab-icon{font-size:14px}
+
+/* ── LAYOUT ── */
+.page{max-width:1080px;margin:0 auto;padding:28px 28px 60px}
 .panel{display:none}
 .panel.active{display:block}
-.results-grid{display:flex;flex-direction:column;gap:10px}
-.result-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;cursor:pointer;transition:border-color 0.15s}
-.result-card:hover{border-color:var(--accent)}
-.result-card.expanded{border-color:var(--accent2)}
-.rc-header{display:flex;align-items:flex-start;gap:12px}
-.rc-code{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent2);min-width:60px;flex-shrink:0;letter-spacing:1px}
-.rc-main{flex:1}
-.rc-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;line-height:1.4}
-.rc-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:4px}
-.rc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.tag{font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
-.tag.green{color:var(--accent2);background:rgba(0,200,150,0.08);border-color:rgba(0,200,150,0.3)}
-.tag.blue{color:var(--accent);background:rgba(79,138,255,0.08);border-color:rgba(79,138,255,0.3)}
-.tag.amber{color:var(--amber);background:rgba(255,179,64,0.08);border-color:rgba(255,179,64,0.3)}
-.rc-expanded{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
-.result-card.expanded .rc-expanded{display:block}
-.rc-content{font-size:12px;line-height:1.7;color:var(--muted);white-space:pre-wrap;max-height:400px;overflow-y:auto;background:var(--surface2);border-radius:4px;padding:12px;margin-bottom:10px}
-.rc-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);text-decoration:none;font-family:var(--mono)}
-.rc-link:hover{text-decoration:underline}
-.stats-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:11px;font-family:var(--mono);color:var(--muted)}
-.stat-val{color:var(--accent2);font-weight:500}
-.no-results{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;text-align:center;color:var(--muted);font-size:13px}
-.browse-table{width:100%;border-collapse:collapse;font-size:12px}
-.browse-table th{text-align:left;padding:8px 12px;border-bottom:2px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
-.browse-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
-.browse-table tr:hover td{background:var(--surface2)}
-.code-cell{font-family:var(--mono);color:var(--accent2);font-size:13px;white-space:nowrap;cursor:pointer}
-.code-cell:hover{text-decoration:underline}
-.desc-cell{color:var(--text);line-height:1.4}
-.series-header td{background:var(--surface2);font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:6px 12px}
-.filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-.filter-btn{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--mono);color:var(--muted);transition:all 0.12s}
-.filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(79,138,255,0.06)}
+
+/* ── LOADING ── */
+.loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:14px}
+.loading-screen.hidden{display:none}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-screen .load-title{font-size:14px;color:var(--text2);font-weight:500}
+.loading-screen .load-sub{font-size:12px;color:var(--muted)}
+
+/* ── SEARCH SECTION ── */
+.search-section{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:20px;box-shadow:var(--shadow)}
+.search-eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--muted);margin-bottom:10px}
+.search-row{display:flex;gap:8px}
+.search-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s,box-shadow 0.15s}
+.search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,87,184,0.1);background:#fff}
+.search-input::placeholder{color:var(--muted)}
+.btn-primary{background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:11px 20px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s,transform 0.1s;white-space:nowrap;letter-spacing:0.1px}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-secondary{background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-secondary:hover{border-color:var(--border-strong);color:var(--text2)}
+
+/* ── AI TOGGLE ── */
+.ai-toggle-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.ai-toggle-label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ai-badge{font-size:10px;font-family:var(--mono);background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-mid);padding:2px 7px;border-radius:3px;font-weight:500}
+.toggle{position:relative;display:inline-block;width:36px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border-strong);border-radius:10px;transition:0.2s}
+.toggle-slider:before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle input:checked+.toggle-slider{background:var(--blue)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px)}
+.api-key-row{display:flex;align-items:center;gap:8px;margin-top:10px;animation:fadeIn 0.2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.api-key-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color 0.15s}
+.api-key-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,87,184,0.1)}
+.api-key-input::placeholder{color:var(--muted)}
+.api-key-note{font-size:11px;color:var(--muted)}
+
+/* ── SCENARIO CHIPS ── */
+.chips-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--muted);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.chip{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.15s;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+.chip:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+
+/* ── STATS BAR ── */
+.stats-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.stat-item{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.stat-val{color:var(--blue);font-weight:600;font-family:var(--mono)}
+.stat-divider{width:1px;height:14px;background:var(--border)}
+
+/* ── RESULT CARDS ── */
+.results{display:flex;flex-direction:column;gap:8px}
+.rcard{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;box-shadow:var(--shadow)}
+.rcard:hover{border-color:var(--blue-mid);box-shadow:var(--shadow-lg)}
+.rcard.open{border-color:var(--blue)}
+.rcard-head{display:flex;align-items:flex-start;gap:14px;padding:14px 18px}
+.rcard-code{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--blue);min-width:70px;flex-shrink:0;line-height:1.1;letter-spacing:0.5px}
+.rcard-code.apc{font-size:17px;min-width:56px}
+.rcard-code.section{font-size:18px;min-width:36px;color:var(--muted)}
+.rcard-body{flex:1;min-width:0}
+.rcard-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:5px}
+.rcard-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:3px;font-weight:500;border:1px solid}
+.tag-blue{color:var(--blue);background:var(--blue-light);border-color:var(--blue-mid)}
+.tag-green{color:var(--green);background:var(--green-light);border-color:#a3d4bc}
+.tag-amber{color:var(--amber);background:var(--amber-light);border-color:#f5c98a}
+.tag-grey{color:var(--muted);background:var(--surface2);border-color:var(--border)}
+.rcard-chevron{font-size:11px;color:var(--muted);flex-shrink:0;padding-top:2px;transition:transform 0.2s}
+.rcard.open .rcard-chevron{transform:rotate(180deg)}
+
+/* ── AI ANSWER BANNER ── */
+.ai-answer{background:linear-gradient(135deg,var(--blue-light),#f0f7ff);border:1.5px solid var(--blue-mid);border-radius:8px;padding:16px 18px;margin-bottom:16px;display:none}
+.ai-answer.visible{display:block;animation:fadeIn 0.25s ease}
+.ai-answer-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ai-answer-dot{width:6px;height:6px;background:var(--blue);border-radius:50%}
+.ai-answer-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.7px;color:var(--blue)}
+.ai-thinking{display:flex;gap:4px;align-items:center}
+.ai-thinking span{width:5px;height:5px;background:var(--blue);border-radius:50%;animation:pulse 1.2s infinite}
+.ai-thinking span:nth-child(2){animation-delay:0.2s}
+.ai-thinking span:nth-child(3){animation-delay:0.4s}
+@keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1)}}
+.ai-answer-text{font-size:13px;color:var(--text2);line-height:1.7}
+.ai-codes{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ai-code-chip{background:#fff;border:1.5px solid var(--blue-mid);border-radius:6px;padding:6px 12px;font-family:var(--mono);font-size:13px;color:var(--blue);font-weight:500;cursor:pointer;transition:all 0.15s}
+.ai-code-chip:hover{background:var(--blue-light);border-color:var(--blue)}
+
+/* ── EXPANDED CONTENT ── */
+.rcard-expanded{display:none;padding:0 18px 16px;border-top:1px solid var(--border)}
+.rcard.open .rcard-expanded{display:block}
+.rcard-content{font-size:12px;line-height:1.8;color:var(--text2);white-space:pre-wrap;max-height:380px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:12px 14px;margin:12px 0 10px;font-family:var(--mono)}
+.rcard-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--blue);text-decoration:none;font-weight:500;padding:5px 10px;border:1px solid var(--blue-mid);border-radius:4px;background:var(--blue-light);transition:all 0.15s}
+.rcard-link:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* ── EMPTY / NO RESULTS ── */
+.empty-state{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:40px 24px;text-align:center;color:var(--muted)}
+.empty-icon{font-size:28px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.empty-sub{font-size:12px}
+
+/* ── BROWSE TABS (proc/apc) ── */
+.browse-controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.filter-pill{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-family:var(--mono);color:var(--muted);cursor:pointer;transition:all 0.15s;font-weight:500}
+.filter-pill:hover{border-color:var(--blue);color:var(--blue)}
+.filter-pill.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.browse-table{width:100%;border-collapse:collapse;font-size:13px}
+.browse-table th{text-align:left;padding:9px 14px;border-bottom:2px solid var(--border);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);background:var(--bg)}
+.browse-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.browse-table tbody tr:hover td{background:var(--blue-light)}
+.code-td{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--blue);cursor:pointer;white-space:nowrap}
+.code-td:hover{text-decoration:underline}
+.desc-td{color:var(--text2);line-height:1.5}
+.series-row td{background:var(--surface2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:6px 14px;border-bottom:1px solid var(--border)}
+.table-wrap{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+
+/* ── ABOUT ── */
+.about-card{background:var(--surface);border:1.5px solid var(--border);border-radius:8px;padding:24px;box-shadow:var(--shadow);max-width:640px}
+.about-card h2{font-size:16px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.about-card .sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.about-card p{font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:14px}
+.about-links{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.about-link{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--blue);text-decoration:none;font-weight:500}
+.about-link:hover{text-decoration:underline}
+.about-warning{background:var(--amber-light);border:1px solid #f5c98a;border-radius:6px;padding:12px 16px;font-size:12px;color:var(--amber);line-height:1.6;margin-top:16px}
+.about-stats{background:var(--bg);border:1.5px solid var(--border);border-radius:6px;padding:14px;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2;margin-top:16px}
+.about-stats span{color:var(--text2);font-weight:500}
 </style>
 </head>
 <body>
+
 <div class="loading-screen" id="loadingScreen">
   <div class="spinner"></div>
-  <p>Loading HMRC procedure codes...</p>
+  <div class="load-title">Loading procedure codes...</div>
+  <div class="load-sub">HMRC CDS Appendix 1 &amp; 2</div>
 </div>
-<div class="header">
-  <div class="logo">⚓</div>
-  <div><h1>CPC &amp; Procedure Code Lookup</h1><p>HMRC CDS — Appendix 1 &amp; 2</p></div>
-  <div class="header-links">
-    <span class="data-badge" id="dataBadge">Loading...</span>
-    <a href="https://www.gov.uk/government/publications/appendix-1-de-110-requested-and-previous-procedure-codes-of-the-customs-declaration-service-cds" target="_blank">Appendix 1 ↗</a>
-    <a href="https://www.gov.uk/government/publications/appendix-2-de-111-additional-procedure-codes-of-the-customs-declaration-service-cds" target="_blank">Appendix 2 ↗</a>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-icon">⚓</div>
+    <div class="topbar-name">TecEx</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-subtitle">Customs Code Lookup</div>
+  </div>
+  <div class="topbar-links">
+    <span class="data-pill" id="dataPill">loading...</span>
+    <a class="topbar-link" href="https://www.gov.uk/government/publications/appendix-1-de-110-requested-and-previous-procedure-codes-of-the-customs-declaration-service-cds" target="_blank">Appendix 1 ↗</a>
+    <a class="topbar-link" href="https://www.gov.uk/government/publications/appendix-2-de-111-additional-procedure-codes-of-the-customs-declaration-service-cds" target="_blank">Appendix 2 ↗</a>
+    <a class="topbar-link" href="https://www.gov.uk/government/collections/uk-trade-tariff-volume-3-for-cds--2" target="_blank">CDS Vol 3 ↗</a>
   </div>
 </div>
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('lookup',this)">🔍 Lookup</div>
-  <div class="tab" onclick="switchTab('proc',this)">📋 Procedure Codes (DE 1/10)</div>
-  <div class="tab" onclick="switchTab('apc',this)">📋 Additional Codes (DE 1/11)</div>
-  <div class="tab" onclick="switchTab('about',this)">ℹ About</div>
-</div>
-<div class="main">
 
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('lookup',this)"><span class="tab-icon">🔍</span> Lookup</div>
+  <div class="tab" onclick="switchTab('proc',this)"><span class="tab-icon">📋</span> Procedure Codes <small style="font-size:10px;font-family:var(--mono);color:var(--muted);margin-left:4px" id="procCount"></small></div>
+  <div class="tab" onclick="switchTab('apc',this)"><span class="tab-icon">📋</span> Additional Codes <small style="font-size:10px;font-family:var(--mono);color:var(--muted);margin-left:4px" id="apcCount"></small></div>
+  <div class="tab" onclick="switchTab('about',this)"><span class="tab-icon">ℹ</span> About</div>
+</div>
+
+<div class="page">
+
+  <!-- ══ LOOKUP ══ -->
   <div class="panel active" id="panel-lookup">
-    <div class="search-wrap">
-      <div class="search-label">Describe your shipment or enter a code directly</div>
+
+    <div class="search-section">
+      <div class="search-eyebrow">Search by scenario, keywords, or code</div>
       <div class="search-row">
-        <input class="search-input" id="lookupInput" type="text" placeholder="e.g. goods sent abroad for repair, temporary admission, inward processing, or enter 4000..." onkeydown="if(event.key==='Enter')doLookup()">
-        <button class="btn" onclick="doLookup()">Search</button>
-        <button class="btn btn-ghost" onclick="clearLookup()">Clear</button>
+        <input class="search-input" id="lookupInput" type="text"
+          placeholder="e.g. goods sent abroad for repair and returning, or enter a code like 4000 or 1RC..."
+          onkeydown="if(event.key==='Enter')doLookup()">
+        <button class="btn-primary" onclick="doLookup()">Search</button>
+        <button class="btn-secondary" onclick="clearLookup()">Clear</button>
       </div>
-    </div>
-    <div class="chips">
-      <div class="chip" onclick="quickLookup('repair return outward processing')">Repair &amp; return</div>
-      <div class="chip" onclick="quickLookup('temporary export exhibition')">Temp export</div>
-      <div class="chip" onclick="quickLookup('temporary admission import testing evaluation')">Temp import / TA</div>
-      <div class="chip" onclick="quickLookup('inward processing IP manufacture re-export')">Inward processing</div>
-      <div class="chip" onclick="quickLookup('standard import free circulation release')">Standard import</div>
-      <div class="chip" onclick="quickLookup('customs warehouse storage CW')">Customs warehousing</div>
-      <div class="chip" onclick="quickLookup('returned goods relief re-importation RGR')">Returned goods</div>
-      <div class="chip" onclick="quickLookup('permanent export dispatch')">Permanent export</div>
-      <div class="chip" onclick="quickLookup('end use relief duty special procedure')">End use relief</div>
-      <div class="chip" onclick="quickLookup('ATA carnet temporary admission')">ATA Carnet</div>
-      <div class="chip" onclick="quickLookup('excise warehouse duty suspended')">Excise warehouse</div>
-      <div class="chip" onclick="quickLookup('onward supply relief OSR')">Onward supply</div>
-    </div>
-    <div id="lookupStats" class="stats-bar" style="display:none"></div>
-    <div id="lookupResults" class="results-grid"></div>
-  </div>
 
-  <div class="panel" id="panel-proc">
-    <div class="search-row" style="margin-bottom:12px">
-      <input class="search-input" id="procSearch" type="text" placeholder="Filter by code or description..." oninput="filterProc()">
-    </div>
-    <div class="filter-bar" id="procFilters"></div>
-    <div id="procTable"></div>
-  </div>
-
-  <div class="panel" id="panel-apc">
-    <div class="search-row" style="margin-bottom:12px">
-      <input class="search-input" id="apcSearch" type="text" placeholder="Filter by code or description..." oninput="filterAPC()">
-    </div>
-    <div class="filter-bar" id="apcFilters"></div>
-    <div id="apcTable"></div>
-  </div>
-
-  <div class="panel" id="panel-about">
-    <div style="max-width:600px">
-      <h2 style="font-size:16px;margin-bottom:14px">About this tool</h2>
-      <div style="font-size:13px;line-height:1.8;color:var(--muted)">
-        <p style="margin-bottom:12px">Procedure codes and additional procedure codes scraped directly from HMRC's official GOV.UK documentation — Appendix 1 (DE 1/10) and Appendix 2 (DE 1/11) of the CDS Volume 3. No external API calls. Works entirely in your browser.</p>
-        <p style="margin-bottom:20px"><strong style="color:var(--amber)">⚠ Always verify against official GOV.UK guidance before submitting declarations.</strong></p>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
-          <a href="https://www.gov.uk/government/publications/appendix-1-de-110-requested-and-previous-procedure-codes-of-the-customs-declaration-service-cds" target="_blank" style="color:var(--accent);font-size:12px">Appendix 1: DE 1/10 Requested and Previous Procedure Codes ↗</a>
-          <a href="https://www.gov.uk/government/publications/appendix-2-de-111-additional-procedure-codes-of-the-customs-declaration-service-cds" target="_blank" style="color:var(--accent);font-size:12px">Appendix 2: DE 1/11 Additional Procedure Codes ↗</a>
-          <a href="https://www.gov.uk/government/collections/uk-trade-tariff-volume-3-for-cds--2" target="_blank" style="color:var(--accent);font-size:12px">CDS Volume 3 — Full Collection ↗</a>
+      <div class="ai-toggle-row">
+        <label class="toggle"><input type="checkbox" id="aiToggle" onchange="toggleAI()"><span class="toggle-slider"></span></label>
+        <span class="ai-toggle-label">
+          Enable AI interpretation
+          <span class="ai-badge">Claude API</span>
+        </span>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px">— summarises which codes apply and why</span>
+      </div>
+      <div id="apiKeyRow" style="display:none">
+        <div class="api-key-row">
+          <input class="api-key-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-...  (stored locally in this browser only)">
+          <span class="api-key-note">Never sent anywhere except Anthropic</span>
         </div>
-        <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:11px;line-height:1.8" id="aboutStats"></div>
       </div>
+    </div>
+
+    <div class="chips-label">Common scenarios</div>
+    <div class="chips">
+      <div class="chip" onclick="ql('repair return outward processing')">Repair &amp; return</div>
+      <div class="chip" onclick="ql('temporary export exhibition trade show')">Temp export / exhibition</div>
+      <div class="chip" onclick="ql('temporary admission import testing evaluation TA')">Temporary admission</div>
+      <div class="chip" onclick="ql('inward processing IP manufacture re-export')">Inward processing (IPR)</div>
+      <div class="chip" onclick="ql('standard import release free circulation')">Standard import</div>
+      <div class="chip" onclick="ql('customs warehouse storage CW')">Customs warehousing</div>
+      <div class="chip" onclick="ql('returned goods relief re-importation RGR')">Returned goods relief</div>
+      <div class="chip" onclick="ql('permanent export dispatch')">Permanent export</div>
+      <div class="chip" onclick="ql('end use relief duty special procedure')">End use relief</div>
+      <div class="chip" onclick="ql('ATA carnet temporary admission')">ATA Carnet</div>
+      <div class="chip" onclick="ql('excise warehouse duty suspended')">Excise warehouse</div>
+      <div class="chip" onclick="ql('onward supply relief OSR')">Onward supply relief</div>
+    </div>
+
+    <div class="ai-answer" id="aiAnswer">
+      <div class="ai-answer-header">
+        <div class="ai-answer-dot"></div>
+        <div class="ai-answer-label">AI Interpretation</div>
+      </div>
+      <div id="aiAnswerContent"></div>
+    </div>
+
+    <div class="stats-row" id="statsRow" style="display:none"></div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <!-- ══ PROCEDURE CODES ══ -->
+  <div class="panel" id="panel-proc">
+    <div class="search-section" style="margin-bottom:18px">
+      <div class="search-eyebrow">Filter procedure codes (DE 1/10)</div>
+      <input class="search-input" id="procSearch" type="text" placeholder="Search by code or description..." oninput="filterProc()" style="width:100%">
+    </div>
+    <div class="browse-controls" id="procFilters"></div>
+    <div class="table-wrap"><div id="procTable"></div></div>
+  </div>
+
+  <!-- ══ ADDITIONAL CODES ══ -->
+  <div class="panel" id="panel-apc">
+    <div class="search-section" style="margin-bottom:18px">
+      <div class="search-eyebrow">Filter additional procedure codes (DE 1/11)</div>
+      <input class="search-input" id="apcSearch" type="text" placeholder="Search by code or description..." oninput="filterAPC()" style="width:100%">
+    </div>
+    <div class="browse-controls" id="apcFilters"></div>
+    <div class="table-wrap"><div id="apcTable"></div></div>
+  </div>
+
+  <!-- ══ ABOUT ══ -->
+  <div class="panel" id="panel-about">
+    <div class="about-card">
+      <h2>Customs Code Lookup</h2>
+      <div class="sub">Built for TecEx — HMRC CDS Volume 3, Appendix 1 &amp; 2</div>
+      <p>This tool contains procedure codes (DE 1/10) and additional procedure codes (DE 1/11) scraped directly from HMRC's official GOV.UK documentation. It runs entirely in your browser — no backend, no server, no external calls unless you enable the AI feature.</p>
+      <p>The optional AI layer uses the Claude API to interpret plain English shipment descriptions and map them to the most relevant codes, using the scraped HMRC data as context.</p>
+      <div class="about-links">
+        <a class="about-link" href="https://www.gov.uk/government/publications/appendix-1-de-110-requested-and-previous-procedure-codes-of-the-customs-declaration-service-cds" target="_blank">📄 Appendix 1: DE 1/10 Requested and Previous Procedure Codes ↗</a>
+        <a class="about-link" href="https://www.gov.uk/government/publications/appendix-2-de-111-additional-procedure-codes-of-the-customs-declaration-service-cds" target="_blank">📄 Appendix 2: DE 1/11 Additional Procedure Codes ↗</a>
+        <a class="about-link" href="https://www.gov.uk/government/collections/uk-trade-tariff-volume-3-for-cds--2" target="_blank">📄 CDS Volume 3 — Full Collection ↗</a>
+      </div>
+      <div class="about-warning">⚠ Always verify codes against official GOV.UK guidance before submitting declarations. Data may become outdated as HMRC publishes updates.</div>
+      <div class="about-stats" id="aboutStats">Loading data stats...</div>
     </div>
   </div>
 
-</div>
+</div><!-- /page -->
+
 <script>
-let KB=null;
+let KB=null, curProcSeries='', curAPCSeries='';
+
+// ── LOAD ─────────────────────────────────────────────────────
 async function loadData(){
   try{
     const res=await fetch('procedure-codes-kb.json');
+    if(!res.ok)throw new Error('HTTP '+res.status);
     KB=await res.json();
     document.getElementById('loadingScreen').classList.add('hidden');
-    const pc=Object.keys(KB.proc).length,ac=Object.keys(KB.apc).length;
-    document.getElementById('dataBadge').textContent=pc+' proc + '+ac+' APC codes';
-    document.getElementById('aboutStats').textContent='Scraped: '+KB.meta.scraped+'\nSource: '+KB.meta.source+'\nProcedure codes: '+pc+'\nAdditional procedure codes: '+ac+'\nSections: '+KB.sections.length;
-    buildProcTable();buildAPCTable();
+    const pc=Object.keys(KB.proc).length, ac=Object.keys(KB.apc).length;
+    document.getElementById('dataPill').textContent=pc+' proc · '+ac+' APC';
+    document.getElementById('procCount').textContent='('+pc+')';
+    document.getElementById('apcCount').textContent='('+ac+')';
+    document.getElementById('aboutStats').innerHTML=
+      'Scraped: <span>'+KB.meta.scraped+'</span>\n'+
+      'Source: <span>'+KB.meta.source+'</span>\n'+
+      'Procedure codes (DE 1/10): <span>'+pc+'</span>\n'+
+      'Additional procedure codes (DE 1/11): <span>'+ac+'</span>\n'+
+      'Guidance sections: <span>'+KB.sections.length+'</span>';
+    buildProcTable(); buildAPCTable();
   }catch(e){
-    document.getElementById('loadingScreen').innerHTML='<div style="color:#ff5555;padding:20px;text-align:center;font-size:14px">Failed to load procedure-codes-kb.json<br><small style="color:#7b7f94">Make sure the file is in the same folder as index.html</small></div>';
+    document.getElementById('loadingScreen').innerHTML=
+      '<div style="text-align:center;color:var(--red);font-size:14px;padding:24px">'+
+      'Failed to load procedure-codes-kb.json<br>'+
+      '<small style="color:var(--muted);font-size:12px">Make sure both files are in the same folder.</small></div>';
   }
 }
+
+// ── TABS ─────────────────────────────────────────────────────
 function switchTab(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
 }
-function quickLookup(q){document.getElementById('lookupInput').value=q;doLookup();}
-function clearLookup(){document.getElementById('lookupInput').value='';document.getElementById('lookupResults').innerHTML='';document.getElementById('lookupStats').style.display='none';}
-function doLookup(){
+
+// ── AI TOGGLE ────────────────────────────────────────────────
+function toggleAI(){
+  const on=document.getElementById('aiToggle').checked;
+  document.getElementById('apiKeyRow').style.display=on?'block':'none';
+  if(on)document.getElementById('apiKeyInput').focus();
+}
+
+// ── SEARCH ───────────────────────────────────────────────────
+function ql(q){document.getElementById('lookupInput').value=q;doLookup();}
+function clearLookup(){
+  document.getElementById('lookupInput').value='';
+  document.getElementById('results').innerHTML='';
+  document.getElementById('statsRow').style.display='none';
+  document.getElementById('aiAnswer').classList.remove('visible');
+}
+
+async function doLookup(){
   if(!KB)return;
-  const query=document.getElementById('lookupInput').value.trim();
-  if(!query)return;
-  const results=searchKB(query);
-  renderLookupResults(results,query);
+  const q=document.getElementById('lookupInput').value.trim();
+  if(!q)return;
+  const staticResults=searchKB(q);
+  renderResults(staticResults,q);
+  const aiOn=document.getElementById('aiToggle').checked;
+  const key=document.getElementById('apiKeyInput').value.trim();
+  if(aiOn&&key)await runAI(q,staticResults,key);
 }
-function scoreMatch(terms,text){
-  let score=0;
+
+// ── KEYWORD SEARCH ────────────────────────────────────────────
+function score(terms,text){
+  let s=0;
   for(const t of terms){
-    if(text.includes(t)){
-      score+=text.split(t).length-1;
-      if(text.includes(' '+t+' ')||text.startsWith(t))score+=2;
-    }
+    if(text.includes(t)){s+=text.split(t).length-1;if(text.includes(' '+t)||text.startsWith(t))s+=2;}
   }
-  if(terms.every(t=>text.includes(t)))score+=terms.length*2;
-  return score;
+  if(terms.every(t=>text.includes(t)))s+=terms.length*2;
+  return s;
 }
-function searchKB(query){
-  const terms=query.toLowerCase().split(/\s+/).filter(t=>t.length>1);
-  const upper=query.toUpperCase().trim();
+
+function searchKB(q){
+  const terms=q.toLowerCase().split(/\s+/).filter(t=>t.length>1);
+  const upper=q.toUpperCase().trim();
   const results=[];const seen=new Set();
-  // Direct code match
-  if(KB.proc[upper]){results.push({type:'proc',code:upper,description:KB.proc[upper],score:100,direct:true,section:KB.sections.find(s=>s.p&&s.p.includes(upper))});seen.add(upper);}
-  if(KB.apc[upper]){results.push({type:'apc',code:upper,description:KB.apc[upper],score:100,direct:true,section:KB.sections.find(s=>s.a&&s.a.includes(upper))});seen.add(upper);}
-  // Fuzzy proc codes
-  for(const[code,desc]of Object.entries(KB.proc)){
-    if(seen.has(code))continue;
-    const score=scoreMatch(terms,(code+' '+desc).toLowerCase());
-    if(score>0){results.push({type:'proc',code,description:desc,score,section:KB.sections.find(s=>s.p&&s.p.includes(code))});seen.add(code);}
+  if(KB.proc[upper]){results.push({type:'proc',code:upper,desc:KB.proc[upper],s:100,direct:true,sec:KB.sections.find(x=>x.p&&x.p.includes(upper))});seen.add(upper);}
+  if(KB.apc[upper]){results.push({type:'apc',code:upper,desc:KB.apc[upper],s:100,direct:true,sec:KB.sections.find(x=>x.a&&x.a.includes(upper))});seen.add(upper);}
+  for(const[c,d]of Object.entries(KB.proc)){
+    if(seen.has(c))continue;
+    const sc=score(terms,(c+' '+d).toLowerCase());
+    if(sc>0){results.push({type:'proc',code:c,desc:d,s:sc,sec:KB.sections.find(x=>x.p&&x.p.includes(c))});seen.add(c);}
   }
-  // Fuzzy APC
-  for(const[code,desc]of Object.entries(KB.apc)){
-    if(seen.has(code))continue;
-    const score=scoreMatch(terms,(code+' '+desc).toLowerCase());
-    if(score>0){results.push({type:'apc',code,description:desc,score,section:KB.sections.find(s=>s.a&&s.a.includes(code))});seen.add(code);}
+  for(const[c,d]of Object.entries(KB.apc)){
+    if(seen.has(c))continue;
+    const sc=score(terms,(c+' '+d).toLowerCase());
+    if(sc>0){results.push({type:'apc',code:c,desc:d,s:sc,sec:KB.sections.find(x=>x.a&&x.a.includes(c))});seen.add(c);}
   }
-  // Sections
-  for(const section of KB.sections){
-    const key='sec:'+section.t;if(seen.has(key))continue;
-    const score=scoreMatch(terms,(section.t+' '+section.g+' '+section.c).toLowerCase())*0.4;
-    if(score>1){
-      let preview='';
-      const lower=section.c.toLowerCase();let best=0,bestScore=0;
-      for(let i=0;i<section.c.length-200;i+=80){const chunk=lower.slice(i,i+300);const s=terms.filter(t=>chunk.includes(t)).length;if(s>bestScore){bestScore=s;best=i;}}
-      preview=section.c.slice(best,best+300).trim();
-      results.push({type:'section',title:section.t,description:section.g,score,section,preview,procCodes:section.p||[]});
-      seen.add(key);
+  for(const sec of KB.sections){
+    const k='s:'+sec.t;if(seen.has(k))continue;
+    const sc=score(terms,(sec.t+' '+sec.g+' '+sec.c).toLowerCase())*0.4;
+    if(sc>1){
+      let preview='',lower=sec.c.toLowerCase(),best=0,bestS=0;
+      for(let i=0;i<sec.c.length-150;i+=60){const ch=lower.slice(i,i+250);const s2=terms.filter(t=>ch.includes(t)).length;if(s2>bestS){bestS=s2;best=i;}}
+      preview=sec.c.slice(best,best+280).trim();
+      results.push({type:'section',title:sec.t,desc:sec.g,s:sc,sec,preview,codes:sec.p||[]});
+      seen.add(k);
     }
   }
-  return results.sort((a,b)=>b.score-a.score).slice(0,30);
+  return results.sort((a,b)=>b.s-a.s).slice(0,30);
 }
-function renderLookupResults(results,query){
-  const statsEl=document.getElementById('lookupStats');
-  const el=document.getElementById('lookupResults');
+
+// ── RENDER RESULTS ────────────────────────────────────────────
+function renderResults(results,q){
+  const statsEl=document.getElementById('statsRow');
+  const el=document.getElementById('results');
   if(!results.length){
     statsEl.style.display='none';
-    el.innerHTML='<div class="no-results">No matches for "'+esc(query)+'"<br><small style="font-size:11px;margin-top:6px;display:block">Try different keywords or browse the tabs above</small></div>';
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No matches for "'+esc(q)+'"</div><div class="empty-sub">Try different keywords, or browse the Procedure Codes and Additional Codes tabs above.</div></div>';
     return;
   }
-  const pc=results.filter(r=>r.type==='proc').length,ac=results.filter(r=>r.type==='apc').length,sc=results.filter(r=>r.type==='section').length;
+  const pc=results.filter(r=>r.type==='proc').length;
+  const ac=results.filter(r=>r.type==='apc').length;
+  const sc=results.filter(r=>r.type==='section').length;
   statsEl.style.display='flex';
-  statsEl.innerHTML='<span>Results: <span class="stat-val">'+results.length+'</span></span>'+(pc?'<span>Procedure codes: <span class="stat-val">'+pc+'</span></span>':'')+(ac?'<span>Additional codes: <span class="stat-val">'+ac+'</span></span>':'')+(sc?'<span>Sections: <span class="stat-val">'+sc+'</span></span>':'');
+  statsEl.innerHTML='<span class="stat-item">Results: <span class="stat-val">'+results.length+'</span></span>'
+    +(pc?'<span class="stat-divider"></span><span class="stat-item">Procedure codes: <span class="stat-val">'+pc+'</span></span>':'')
+    +(ac?'<span class="stat-divider"></span><span class="stat-item">Additional codes: <span class="stat-val">'+ac+'</span></span>':'')
+    +(sc?'<span class="stat-divider"></span><span class="stat-item">Sections: <span class="stat-val">'+sc+'</span></span>':'');
   el.innerHTML=results.map((r,i)=>{
-    if(r.type==='proc')return renderCard(i,r.code,'DE 1/10',procSeriesLabel(r.code.substring(0,2)),r.description,r.direct,r.section);
-    if(r.type==='apc')return renderCard(i,r.code,'DE 1/11',r.code[0]+'-Series APC',r.description,r.direct,r.section);
-    return renderSectionCard(i,r);
+    if(r.type==='proc')return card(i,'proc',r.code,r.desc,r.direct,'DE 1/10',seriesLabel(r.code.substring(0,2)),r.sec);
+    if(r.type==='apc')return card(i,'apc',r.code,r.desc,r.direct,'DE 1/11',r.code[0]+'-Series',r.sec);
+    return sectionCard(i,r);
   }).join('');
 }
-function renderCard(i,code,de,series,desc,direct,section){
-  const content=section?section.c:'';const url=section?section.u:'';
-  return '<div class="result-card" id="card-'+i+'" onclick="toggleCard('+i+')">'
-    +'<div class="rc-header">'
-    +'<div class="rc-code">'+esc(code)+'</div>'
-    +'<div class="rc-main"><div class="rc-title">'+esc(desc)+'</div>'
-    +'<div class="rc-tags"><span class="tag green">'+esc(de)+'</span><span class="tag blue">'+esc(series)+'</span>'+(direct?'<span class="tag amber">exact match</span>':'')+'</div></div>'
-    +'<div style="font-size:10px;color:var(--muted);font-family:var(--mono);flex-shrink:0;padding-top:2px">▼</div></div>'
-    +'<div class="rc-expanded">'
-    +(content?'<div class="rc-content">'+esc(content.substring(0,2000))+'</div>':'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Full completion notes on GOV.UK</div>')
-    +(url?'<a class="rc-link" href="'+esc(url)+'" target="_blank" rel="noopener">View on GOV.UK ↗</a>':'')
+
+function card(i,type,code,desc,direct,de,series,sec){
+  const content=sec?sec.c:'';const url=sec?sec.u:'';
+  return '<div class="rcard" id="c'+i+'" onclick="tog('+i+')">'
+    +'<div class="rcard-head">'
+    +'<div class="rcard-code'+(type==='apc'?' apc':'')+'">'+esc(code)+'</div>'
+    +'<div class="rcard-body"><div class="rcard-title">'+esc(desc)+'</div>'
+    +'<div class="rcard-tags"><span class="tag tag-blue">'+esc(de)+'</span><span class="tag tag-grey">'+esc(series)+'</span>'+(direct?'<span class="tag tag-amber">exact match</span>':'')+'</div></div>'
+    +'<div class="rcard-chevron">▼</div></div>'
+    +'<div class="rcard-expanded">'
+    +(content?'<div class="rcard-content">'+esc(content.substring(0,2000))+'</div>':'<p style="font-size:12px;color:var(--muted);padding-top:10px">Full completion notes available on GOV.UK.</p>')
+    +(url?'<a class="rcard-link" href="'+esc(url)+'" target="_blank" rel="noopener">View official guidance on GOV.UK ↗</a>':'')
     +'</div></div>';
 }
-function renderSectionCard(i,r){
-  const url=r.section?r.section.u:'';
-  return '<div class="result-card" id="card-'+i+'" onclick="toggleCard('+i+')">'
-    +'<div class="rc-header"><div class="rc-code" style="font-size:14px;color:var(--accent)">📄</div>'
-    +'<div class="rc-main"><div class="rc-title">'+esc(r.title)+'</div><div class="rc-desc">'+esc(r.description)+'</div>'
-    +'<div class="rc-tags"><span class="tag">Guidance</span>'+(r.procCodes||[]).slice(0,4).map(c=>'<span class="tag blue">'+esc(c)+'</span>').join('')+'</div></div>'
-    +'<div style="font-size:10px;color:var(--muted);font-family:var(--mono);flex-shrink:0;padding-top:2px">▼</div></div>'
-    +'<div class="rc-expanded">'
-    +(r.preview?'<div class="rc-content">'+esc(r.preview)+'</div>':'')
-    +(url?'<a class="rc-link" href="'+esc(url)+'" target="_blank" rel="noopener">View on GOV.UK ↗</a>':'')
+
+function sectionCard(i,r){
+  const url=r.sec?r.sec.u:'';
+  return '<div class="rcard" id="c'+i+'" onclick="tog('+i+')">'
+    +'<div class="rcard-head">'
+    +'<div class="rcard-code section">📄</div>'
+    +'<div class="rcard-body"><div class="rcard-title">'+esc(r.title)+'</div>'
+    +'<div class="rcard-tags"><span class="tag tag-grey">Guidance</span>'+(r.codes||[]).slice(0,4).map(c=>'<span class="tag tag-blue">'+esc(c)+'</span>').join('')+'</div></div>'
+    +'<div class="rcard-chevron">▼</div></div>'
+    +'<div class="rcard-expanded">'
+    +(r.preview?'<div class="rcard-content">'+esc(r.preview)+'</div>':'')
+    +(url?'<a class="rcard-link" href="'+esc(url)+'" target="_blank" rel="noopener">View official guidance on GOV.UK ↗</a>':'')
     +'</div></div>';
 }
-function toggleCard(i){document.getElementById('card-'+i).classList.toggle('expanded');}
-let currentProcSeries='',currentAPCSeries='';
+
+function tog(i){document.getElementById('c'+i).classList.toggle('open');}
+
+// ── AI LAYER ─────────────────────────────────────────────────
+async function runAI(query,results,apiKey){
+  const answerEl=document.getElementById('aiAnswer');
+  const contentEl=document.getElementById('aiAnswerContent');
+  answerEl.classList.add('visible');
+  contentEl.innerHTML='<div class="ai-thinking"><span></span><span></span><span></span></div>';
+
+  // Build context from top results
+  const topCodes=results.slice(0,8).map(r=>
+    r.type==='proc'||r.type==='apc'
+      ?r.code+': '+r.desc
+      :r.title
+  ).join('\n');
+
+  const sysPrompt=`You are a UK customs compliance expert. Given a shipment scenario, identify which HMRC CDS procedure codes (DE 1/10) and additional procedure codes (DE 1/11) apply. Be specific and concise. Format your response as:
+
+**Recommended codes:** [list codes like 2100 + 000]
+**Why:** [2-3 sentences explaining the match]
+**Note:** [any important condition or caveat]
+
+Keep it brief and actionable. Only reference codes that are relevant.`;
+
+  const userMsg=`Scenario: "${query}"\n\nRelevant codes found by search:\n${topCodes}`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:sysPrompt,messages:[{role:'user',content:userMsg}]})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error '+res.status);}
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'';
+    // Render with basic markdown bold
+    const html=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+    contentEl.innerHTML='<div class="ai-answer-text">'+html+'</div>';
+    // Extract any code mentions and make clickable chips
+    const codeMatches=[...text.matchAll(/\b(\d{4}|[A-Z]\d{2}[A-Z]?)\b/g)].map(m=>m[1]).filter(c=>KB.proc[c]||KB.apc[c]);
+    if(codeMatches.length){
+      const unique=[...new Set(codeMatches)];
+      contentEl.innerHTML+='<div class="ai-codes">'+unique.map(c=>'<span class="ai-code-chip" onclick="ql(\''+esc(c)+'\')" title="'+(KB.proc[c]||KB.apc[c]||'')+'">'+esc(c)+'</span>').join('')+'</div>';
+    }
+  }catch(e){
+    contentEl.innerHTML='<div style="font-size:12px;color:var(--red)">AI error: '+esc(e.message)+'</div>';
+  }
+}
+
+// ── BROWSE TABLES ─────────────────────────────────────────────
 function buildProcTable(filter,series){
-  filter=filter||'';series=series||currentProcSeries;
+  filter=filter||'';series=series||curProcSeries;
   if(!KB)return;
-  const entries=Object.entries(KB.proc).filter(([c,d])=>{
-    return(!filter||(c+' '+d).toLowerCase().includes(filter.toLowerCase()))&&(!series||c.startsWith(series));
-  });
+  const entries=Object.entries(KB.proc).filter(([c,d])=>
+    (!filter||(c+' '+d).toLowerCase().includes(filter.toLowerCase()))&&
+    (!series||c.startsWith(series))
+  );
   const allSeries=[...new Set(Object.keys(KB.proc).map(c=>c.substring(0,2)))].sort();
   const fb=document.getElementById('procFilters');
   if(!fb.children.length){
-    fb.innerHTML='<span class="filter-btn active" onclick="setProcFilter(\'\',this)">All</span>'+allSeries.map(s=>'<span class="filter-btn" onclick="setProcFilter(\''+s+'\',this)">'+s+'-series</span>').join('');
+    fb.innerHTML='<span class="filter-pill active" onclick="setPSeries(\'\',this)">All</span>'+
+      allSeries.map(s=>'<span class="filter-pill" onclick="setPSeries(\''+s+'\',this)">'+s+'-series</span>').join('');
   }
   const grouped={};
   entries.forEach(([c,d])=>{const s=c.substring(0,2);if(!grouped[s])grouped[s]=[];grouped[s].push([c,d]);});
-  let html='<table class="browse-table"><thead><tr><th>Code</th><th>Description</th></tr></thead><tbody>';
+  let h='<table class="browse-table"><thead><tr><th style="width:120px">Code</th><th>Description</th></tr></thead><tbody>';
   Object.entries(grouped).sort().forEach(([s,codes])=>{
-    html+='<tr class="series-header"><td colspan="2">'+esc(procSeriesLabel(s))+' ('+esc(s)+'-series)</td></tr>';
+    h+='<tr class="series-row"><td colspan="2">'+esc(seriesLabel(s))+' — '+esc(s)+'-series</td></tr>';
     codes.sort(([a],[b])=>a.localeCompare(b)).forEach(([c,d])=>{
-      html+='<tr><td class="code-cell" onclick="quickLookup(\''+esc(c)+'\')">'+esc(c)+'</td><td class="desc-cell">'+esc(d)+'</td></tr>';
+      h+='<tr><td class="code-td" onclick="ql(\''+esc(c)+'\')">'+esc(c)+'</td><td class="desc-td">'+esc(d)+'</td></tr>';
     });
   });
-  html+='</tbody></table>';
-  document.getElementById('procTable').innerHTML=html;
+  h+='</tbody></table>';
+  document.getElementById('procTable').innerHTML=h;
 }
-function setProcFilter(s,el){
-  document.querySelectorAll('#procFilters .filter-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');currentProcSeries=s;buildProcTable(document.getElementById('procSearch').value,s);
-}
-function filterProc(){buildProcTable(document.getElementById('procSearch').value,currentProcSeries);}
+function setPSeries(s,el){document.querySelectorAll('#procFilters .filter-pill').forEach(b=>b.classList.remove('active'));el.classList.add('active');curProcSeries=s;buildProcTable(document.getElementById('procSearch').value,s);}
+function filterProc(){buildProcTable(document.getElementById('procSearch').value,curProcSeries);}
+
 function buildAPCTable(filter,series){
-  filter=filter||'';series=series||currentAPCSeries;
+  filter=filter||'';series=series||curAPCSeries;
   if(!KB)return;
-  const entries=Object.entries(KB.apc).filter(([c,d])=>{
-    return(!filter||(c+' '+d).toLowerCase().includes(filter.toLowerCase()))&&(!series||c.startsWith(series));
-  });
+  const entries=Object.entries(KB.apc).filter(([c,d])=>
+    (!filter||(c+' '+d).toLowerCase().includes(filter.toLowerCase()))&&
+    (!series||c.startsWith(series))
+  );
   const allSeries=[...new Set(Object.keys(KB.apc).map(c=>c[0]))].sort();
   const fb=document.getElementById('apcFilters');
   if(!fb.children.length){
-    fb.innerHTML='<span class="filter-btn active" onclick="setAPCFilter(\'\',this)">All</span>'+allSeries.map(s=>'<span class="filter-btn" onclick="setAPCFilter(\''+s+'\',this)">'+s+'-series</span>').join('');
+    fb.innerHTML='<span class="filter-pill active" onclick="setASeries(\'\',this)">All</span>'+
+      allSeries.map(s=>'<span class="filter-pill" onclick="setASeries(\''+s+'\',this)">'+s+'-series</span>').join('');
   }
   const grouped={};
   entries.forEach(([c,d])=>{const s=c[0];if(!grouped[s])grouped[s]=[];grouped[s].push([c,d]);});
-  let html='<table class="browse-table"><thead><tr><th>Code</th><th>Description</th></tr></thead><tbody>';
+  let h='<table class="browse-table"><thead><tr><th style="width:120px">Code</th><th>Description</th></tr></thead><tbody>';
   Object.entries(grouped).sort().forEach(([s,codes])=>{
-    html+='<tr class="series-header"><td colspan="2">'+esc(s)+'-Series Additional Procedure Codes</td></tr>';
+    h+='<tr class="series-row"><td colspan="2">'+esc(s)+'-Series Additional Procedure Codes</td></tr>';
     codes.sort(([a],[b])=>a.localeCompare(b)).forEach(([c,d])=>{
-      html+='<tr><td class="code-cell" onclick="quickLookup(\''+esc(c)+'\')">'+esc(c)+'</td><td class="desc-cell">'+esc(d)+'</td></tr>';
+      h+='<tr><td class="code-td" onclick="ql(\''+esc(c)+'\')">'+esc(c)+'</td><td class="desc-td">'+esc(d)+'</td></tr>';
     });
   });
-  html+='</tbody></table>';
-  document.getElementById('apcTable').innerHTML=html;
+  h+='</tbody></table>';
+  document.getElementById('apcTable').innerHTML=h;
 }
-function setAPCFilter(s,el){
-  document.querySelectorAll('#apcFilters .filter-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');currentAPCSeries=s;buildAPCTable(document.getElementById('apcSearch').value,s);
-}
-function filterAPC(){buildAPCTable(document.getElementById('apcSearch').value,currentAPCSeries);}
-function procSeriesLabel(s){
-  const m={'01':'Onward dispatch (OSD)','07':'Excise warehouse','10':'Permanent export','11':'Outward processing','21':'Temporary export','22':'Returned goods re-export','23':'Re-exportation','31':'Excise goods export','40':'Release to free circulation','42':'Onward supply relief','44':'End use','51':'Inward processing','53':'Temporary admission','61':'Re-importation / RGR','71':'Customs warehousing','00':'Inventory / CCR'};
+function setASeries(s,el){document.querySelectorAll('#apcFilters .filter-pill').forEach(b=>b.classList.remove('active'));el.classList.add('active');curAPCSeries=s;buildAPCTable(document.getElementById('apcSearch').value,s);}
+function filterAPC(){buildAPCTable(document.getElementById('apcSearch').value,curAPCSeries);}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function seriesLabel(s){
+  const m={'01':'Onward dispatch','07':'Excise warehouse','10':'Permanent export','11':'Outward processing','21':'Temporary export','22':'Returned goods re-export','23':'Re-exportation','31':'Excise goods export','40':'Release to free circulation','42':'Onward supply relief','44':'End use','51':'Inward processing','53':'Temporary admission','61':'Re-importation / RGR','71':'Customs warehousing','00':'Inventory / CCR'};
   return m[s]||s+'-series';
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 loadData();
 </script>
 </body>
