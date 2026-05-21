@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOV.UK Customs & Tariff Search</title>
+<meta name="description" content="Search GOV.UK for customs procedure codes, CPC codes, tariff guidance and HMRC documentation.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f4f4f0;
+  --surface:#ffffff;
+  --surface2:#f0efe9;
+  --border:#d6d4cc;
+  --accent:#1a3fcc;
+  --accent-light:#e8edff;
+  --green:#006e3c;
+  --green-light:#e6f4ed;
+  --amber:#b85c00;
+  --red:#c0000a;
+  --text:#1a1a18;
+  --muted:#6b6b66;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+}
+
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:13px}
+
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* TOP BAR */
+.topbar{background:var(--text);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-logo{font-family:var(--mono);font-size:11px;background:var(--accent);color:#fff;padding:3px 8px;border-radius:3px;letter-spacing:1px;font-weight:500}
+.topbar-title{font-weight:500;font-size:14px}
+.topbar-sub{font-size:11px;color:#888;margin-left:auto;font-family:var(--mono)}
+.topbar-link{font-size:11px;color:#888;text-decoration:none;margin-left:16px}
+.topbar-link:hover{color:#fff}
+
+/* TABS */
+.tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);flex-shrink:0;overflow-x:auto;padding:0 4px}
+.tab{padding:11px 18px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;color:var(--muted);transition:all 0.15s;user-select:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* MAIN LAYOUT */
+.main{display:flex;flex:1;overflow:hidden}
+.panel{flex:1;overflow-y:auto;padding:20px;display:none}
+.panel.active{display:block}
+
+/* TWO COLUMN */
+.two-col{display:grid;grid-template-columns:310px 1fr;gap:20px;height:100%}
+@media(max-width:700px){.two-col{grid-template-columns:1fr}}
+.form-col{display:flex;flex-direction:column;gap:10px}
+.results-col{overflow-y:auto}
+
+/* FORM ELEMENTS */
+.field{display:flex;flex-direction:column;gap:4px}
+label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
+input,select,textarea{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;transition:border-color 0.15s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px;font-family:var(--mono);font-size:12px}
+
+.btn{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:9px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:opacity 0.15s;width:100%}
+.btn:hover{opacity:0.85}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-sm{padding:5px 10px;font-size:11px;width:auto}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+
+.section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:4px}
+
+/* URL PREVIEW */
+.url-bar{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-family:var(--mono);font-size:10px;color:var(--muted);word-break:break-all;line-height:1.6;cursor:pointer}
+.url-bar:hover{border-color:var(--accent)}
+.url-bar .param{color:var(--accent)}
+.url-bar .base{color:var(--text)}
+
+/* STATUS */
+.status-bar{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px}
+.status-bar.ok{color:var(--green);background:var(--green-light);border-color:#a3d4bc}
+.status-bar.err{color:var(--red);background:#fff0f0;border-color:#f5b8b8}
+.status-bar.loading{color:var(--accent);background:var(--accent-light);border-color:#a8bcf5}
+
+/* RESULT CARDS */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s,box-shadow 0.15s;text-decoration:none;display:block;color:inherit}
+.result-card:hover{border-color:var(--accent);box-shadow:0 1px 6px rgba(26,63,204,0.08)}
+.result-title{font-weight:500;font-size:13px;color:var(--accent);margin-bottom:5px;line-height:1.4}
+.result-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:7px}
+.result-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:2px 6px;font-size:10px;font-family:var(--mono);color:var(--muted)}
+.tag.green{background:var(--green-light);color:var(--green);border-color:#a3d4bc}
+.tag.blue{background:var(--accent-light);color:var(--accent);border-color:#a8bcf5}
+.result-date{font-size:11px;color:var(--muted);margin-left:auto;font-family:var(--mono)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:3px 10px;font-size:11px;cursor:pointer;transition:all 0.12s;user-select:none}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+/* AGGREGATIONS */
+.agg-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.agg-label{font-size:12px;min-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agg-bar-wrap{flex:1;background:var(--surface2);border-radius:2px;height:8px;overflow:hidden}
+.agg-bar{background:var(--accent);height:100%;border-radius:2px;transition:width 0.5s ease}
+.agg-count{font-family:var(--mono);font-size:11px;color:var(--muted);min-width:50px;text-align:right}
+
+/* JSON VIEW */
+.json-view{background:#1a1a18;color:#a8ff78;padding:16px;border-radius:6px;font-family:var(--mono);font-size:11px;line-height:1.7;overflow:auto;max-height:600px;white-space:pre-wrap;word-break:break-all}
+
+/* MISC */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.divider{border:none;border-top:1px solid var(--border);margin:4px 0}
+.no-results{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;line-height:1.6}
+.result-count{font-size:12px;color:var(--muted);margin-bottom:10px;font-family:var(--mono)}
+.btn-row{display:flex;gap:8px}
+
+/* PAGINATION */
+.pagination{display:flex;gap:6px;align-items:center;margin-top:14px;justify-content:center;flex-wrap:wrap}
+.page-btn{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:all 0.12s}
+.page-btn:hover{border-color:var(--accent);color:var(--accent)}
+.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.page-btn:disabled{opacity:0.4;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-logo">GOV.UK</div>
+    <div class="topbar-title">Customs &amp; Tariff Search</div>
+    <a class="topbar-link" href="https://docs.publishing.service.gov.uk/repos/search-api/using-the-search-api.html" target="_blank">API docs ↗</a>
+    <a class="topbar-link" href="https://www.gov.uk/government/collections/uk-trade-tariff-volume-3-for-cds--2" target="_blank">CDS Vol 3 ↗</a>
+    <div class="topbar-sub">api/search.json · live</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="search" onclick="switchTab(this,'search')">🔍 Search</div>
+    <div class="tab" data-tab="customs" onclick="switchTab(this,'customs')">⚓ Customs &amp; Tariff</div>
+    <div class="tab" data-tab="updates" onclick="switchTab(this,'updates')">📅 Recent Updates</div>
+    <div class="tab" data-tab="aggregate" onclick="switchTab(this,'aggregate')">📊 Aggregations</div>
+    <div class="tab" data-tab="raw" onclick="switchTab(this,'raw')">⚙ Raw API</div>
+  </div>
+
+  <div class="main">
+
+    <!-- ══════════════ SEARCH TAB ══════════════ -->
+    <div class="panel active" id="panel-search">
+      <div class="two-col">
+        <div class="form-col">
+          <div class="section-title">Search GOV.UK</div>
+          <div class="field">
+            <label>Query</label>
+            <input id="s-q" type="text" placeholder="e.g. customs procedure codes CDS" oninput="updateAllPreviews()" onkeydown="if(event.key==='Enter')runSearch()">
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Results per page</label>
+              <select id="s-count" onchange="updateAllPreviews()">
+                <option>10</option><option>20</option><option selected>25</option><option>50</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Sort</label>
+              <select id="s-order" onchange="updateAllPreviews()">
+                <option value="">Relevance</option>
+                <option value="-public_timestamp">Newest first</option>
+                <option value="public_timestamp">Oldest first</option>
+              </select>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="section-title">Filters</div>
+          <div class="field">
+            <label>Organisation</label>
+            <select id="s-org" onchange="updateAllPreviews()">
+              <option value="">Any organisation</option>
+              <option value="hm-revenue-customs" selected>HMRC</option>
+              <option value="department-for-business-and-trade">Dept for Business &amp; Trade</option>
+              <option value="home-office">Home Office</option>
+              <option value="border-force">Border Force</option>
+              <option value="cabinet-office">Cabinet Office</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Document type</label>
+            <select id="s-format" onchange="updateAllPreviews()">
+              <option value="">Any</option>
+              <option value="guidance">Guidance</option>
+              <option value="detailed_guide">Detailed guide</option>
+              <option value="publication">Publication</option>
+              <option value="document_collection">Collection</option>
+              <option value="hmrc_manual_section">HMRC Manual section</option>
+              <option value="answer">Answer</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="field"><label>Published from</label><input id="s-from" type="date" oninput="updateAllPreviews()"></div>
+            <div class="field"><label>Published to</label><input id="s-to" type="date" oninput="updateAllPreviews()"></div>
+          </div>
+          <hr class="divider">
+          <div class="field"><label>API URL (click to copy)</label><div class="url-bar" id="s-url" onclick="copyURL('s-url')">—</div></div>
+          <button class="btn" onclick="runSearch()">Search</button>
+          <div id="s-paging"></div>
+        </div>
+        <div class="results-col">
+          <div id="s-status" class="status-bar" style="display:none"></div>
+          <div id="s-count-label" class="result-count"></div>
+          <div id="s-results"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ CUSTOMS TAB ══════════════ -->
+    <div class="panel" id="panel-customs">
+      <div class="two-col">
+        <div class="form-col">
+          <div class="section-title">Customs &amp; Tariff Lookups</div>
+          <div class="field">
+            <label>Search query</label>
+            <input id="c-q" type="text" placeholder="describe what you need..." oninput="updateAllPreviews()" onkeydown="if(event.key==='Enter')runCustomsSearch()">
+          </div>
+          <div class="field">
+            <label>Quick searches</label>
+            <div class="chips">
+              <div class="chip" onclick="customs('CPC customs procedure codes')">All CPC codes</div>
+              <div class="chip" onclick="customs('appendix 1 procedure codes CDS volume 3 imports')">Appendix 1 — Imports</div>
+              <div class="chip" onclick="customs('appendix 1 procedure codes CDS exports')">Appendix 1 — Exports</div>
+              <div class="chip" onclick="customs('appendix 2 additional procedure codes CDS imports')">Appendix 2 — Imports</div>
+              <div class="chip" onclick="customs('appendix 2 additional procedure codes CDS exports')">Appendix 2 — Exports</div>
+              <div class="chip" onclick="customs('inward processing relief IPR procedure code')">Inward Processing (IPR)</div>
+              <div class="chip" onclick="customs('outward processing relief OPR')">Outward Processing (OPR)</div>
+              <div class="chip" onclick="customs('customs warehousing procedure CDS')">Customs Warehousing</div>
+              <div class="chip" onclick="customs('temporary admission ATA carnet procedure')">Temporary Admission</div>
+              <div class="chip" onclick="customs('returned goods relief CDS procedure')">Returned Goods Relief</div>
+              <div class="chip" onclick="customs('end use relief tariff procedure')">End Use Relief</div>
+              <div class="chip" onclick="customs('tariff suspension quota duty relief')">Duty Suspensions</div>
+              <div class="chip" onclick="customs('free zone special economic zone customs')">Free Zones</div>
+              <div class="chip" onclick="customs('excise duty procedure customs declaration')">Excise &amp; Duty</div>
+              <div class="chip" onclick="customs('CDS declaration completion instructions imports')">CDS Import Instructions</div>
+              <div class="chip" onclick="customs('CDS declaration completion instructions exports')">CDS Export Instructions</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Organisation scope</label>
+              <select id="c-org" onchange="updateAllPreviews()">
+                <option value="hm-revenue-customs" selected>HMRC only</option>
+                <option value="">All GOV.UK</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Results</label>
+              <select id="c-count" onchange="updateAllPreviews()">
+                <option>10</option><option selected>20</option><option>30</option><option>50</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>API URL (click to copy)</label><div class="url-bar" id="c-url" onclick="copyURL('c-url')">—</div></div>
+          <button class="btn" onclick="runCustomsSearch()">Search</button>
+        </div>
+        <div class="results-col">
+          <div id="c-status" class="status-bar" style="display:none"></div>
+          <div id="c-count-label" class="result-count"></div>
+          <div id="c-results"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ UPDATES TAB ══════════════ -->
+    <div class="panel" id="panel-updates">
+      <div class="two-col">
+        <div class="form-col">
+          <div class="section-title">Recent GOV.UK Updates</div>
+          <p style="font-size:12px;color:var(--muted);line-height:1.5">Monitor what HMRC and other bodies have published or updated recently. Useful for catching tariff changes before they affect your shipments.</p>
+          <div class="field" style="margin-top:4px">
+            <label>Keyword filter (optional)</label>
+            <input id="u-q" type="text" placeholder="e.g. tariff procedure CDS" oninput="updateAllPreviews()" onkeydown="if(event.key==='Enter')runUpdates()">
+          </div>
+          <div class="field">
+            <label>Organisation</label>
+            <select id="u-org" onchange="updateAllPreviews()">
+              <option value="hm-revenue-customs" selected>HMRC</option>
+              <option value="">All GOV.UK</option>
+              <option value="department-for-business-and-trade">Dept for Business &amp; Trade</option>
+              <option value="border-force">Border Force</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Updated in last</label>
+              <select id="u-since" onchange="updateAllPreviews()">
+                <option value="7">7 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+                <option value="180">6 months</option>
+                <option value="365">1 year</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Document type</label>
+              <select id="u-format" onchange="updateAllPreviews()">
+                <option value="">Any</option>
+                <option value="guidance">Guidance</option>
+                <option value="detailed_guide">Detailed guide</option>
+                <option value="publication">Publication</option>
+                <option value="hmrc_manual_section">HMRC Manual</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Results</label>
+            <select id="u-count" onchange="updateAllPreviews()"><option>10</option><option selected>20</option><option>30</option></select>
+          </div>
+          <div class="field"><label>API URL (click to copy)</label><div class="url-bar" id="u-url" onclick="copyURL('u-url')">—</div></div>
+          <button class="btn" onclick="runUpdates()">Fetch Updates</button>
+        </div>
+        <div class="results-col">
+          <div id="u-status" class="status-bar" style="display:none"></div>
+          <div id="u-count-label" class="result-count"></div>
+          <div id="u-results"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ AGGREGATIONS TAB ══════════════ -->
+    <div class="panel" id="panel-aggregate">
+      <div class="two-col">
+        <div class="form-col">
+          <div class="section-title">Aggregations</div>
+          <p style="font-size:12px;color:var(--muted);line-height:1.5">Group GOV.UK content by a field — see which organisations publish the most on a topic, what document types are available, and how content is distributed.</p>
+          <div class="field" style="margin-top:4px">
+            <label>Search query</label>
+            <input id="ag-q" type="text" value="customs procedure codes" oninput="updateAllPreviews()">
+          </div>
+          <div class="field">
+            <label>Group by</label>
+            <select id="ag-field" onchange="updateAllPreviews()">
+              <option value="organisations">Organisations</option>
+              <option value="document_type">Document type</option>
+              <option value="content_store_document_type">Content store document type</option>
+              <option value="format">Format</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Max groups</label>
+              <select id="ag-limit" onchange="updateAllPreviews()"><option>5</option><option selected>10</option><option>20</option></select>
+            </div>
+            <div class="field">
+              <label>Filter org</label>
+              <select id="ag-org" onchange="updateAllPreviews()">
+                <option value="">All</option>
+                <option value="hm-revenue-customs">HMRC</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>API URL (click to copy)</label><div class="url-bar" id="ag-url" onclick="copyURL('ag-url')">—</div></div>
+          <button class="btn" onclick="runAgg()">Run Aggregation</button>
+        </div>
+        <div class="results-col">
+          <div id="ag-status" class="status-bar" style="display:none"></div>
+          <div id="ag-results"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ RAW API TAB ══════════════ -->
+    <div class="panel" id="panel-raw">
+      <div class="two-col">
+        <div class="form-col">
+          <div class="section-title">Raw API Query</div>
+          <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px">Write any query using GOV.UK Search API params. One param per line as <code style="font-family:var(--mono);background:var(--surface2);padding:1px 4px;border-radius:2px">key=value</code>.</p>
+          <div class="field">
+            <label>Parameters</label>
+            <textarea id="r-params" rows="12" oninput="updateRawPreview()">q=customs procedure codes
+count=10
+filter_organisations=hm-revenue-customs
+order=-public_timestamp</textarea>
+          </div>
+          <div class="field"><label>Full URL (click to copy)</label><div class="url-bar" id="r-url" onclick="copyURL('r-url')">—</div></div>
+          <div class="btn-row">
+            <button class="btn" onclick="runRaw()">Execute</button>
+            <button class="btn btn-ghost btn-sm" onclick="copyURL('r-url')">Copy URL</button>
+          </div>
+          <hr class="divider">
+          <div class="section-title">Parameter reference</div>
+          <div style="font-size:11px;color:var(--muted);line-height:2;font-family:var(--mono)">
+            q=<span style="color:var(--text)">search terms</span><br>
+            count=<span style="color:var(--text)">1–1500 (default 10)</span><br>
+            start=<span style="color:var(--text)">offset for pagination</span><br>
+            order=<span style="color:var(--text)">public_timestamp or -public_timestamp</span><br>
+            filter_organisations=<span style="color:var(--text)">hm-revenue-customs</span><br>
+            filter_format=<span style="color:var(--text)">guidance | publication | detailed_guide</span><br>
+            filter_public_timestamp=<span style="color:var(--text)">from:2024-01-01,to:2024-12-31</span><br>
+            reject_organisations=<span style="color:var(--text)">organisation-slug</span><br>
+            aggregate_organisations=<span style="color:var(--text)">10</span><br>
+            aggregate_document_type=<span style="color:var(--text)">10</span>
+          </div>
+        </div>
+        <div class="results-col">
+          <div id="r-status" class="status-bar" style="display:none"></div>
+          <div id="r-json"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const BASE = 'https://www.gov.uk/api/search.json';
+let searchState = { start: 0, total: 0, count: 25 };
+
+// ── TAB SWITCHING ────────────────────────────────────────────
+function switchTab(el, name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  updateAllPreviews();
+}
+
+// ── URL BUILDING ─────────────────────────────────────────────
+function buildURL(params) {
+  const parts = Object.entries(params)
+    .filter(([,v]) => v !== '' && v != null)
+    .map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+  return BASE + '?' + parts.join('&');
+}
+
+function renderURL(elId, url) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const [base, qs] = url.split('?');
+  if (!qs) { el.textContent = url; return; }
+  const params = qs.split('&').map(p => `<span class="param">${p}</span>`).join('<span style="color:var(--amber)">&</span>');
+  el.innerHTML = `<span class="base">${base}?</span>${params}`;
+  el.dataset.url = url;
+}
+
+function copyURL(elId) {
+  const el = document.getElementById(elId);
+  const url = el.dataset.url || el.textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = el.style.borderColor;
+    el.style.borderColor = 'var(--green)';
+    setTimeout(() => el.style.borderColor = orig, 800);
+  });
+}
+
+// ── PARAM GETTERS ────────────────────────────────────────────
+function getSearchParams(start = 0) {
+  const p = {};
+  const q = document.getElementById('s-q').value.trim();
+  if (q) p.q = q;
+  const count = document.getElementById('s-count').value;
+  p.count = count;
+  p.start = start;
+  const order = document.getElementById('s-order').value;
+  if (order) p.order = order;
+  const org = document.getElementById('s-org').value;
+  if (org) p.filter_organisations = org;
+  const fmt = document.getElementById('s-format').value;
+  if (fmt) p.filter_format = fmt;
+  const from = document.getElementById('s-from').value;
+  const to = document.getElementById('s-to').value;
+  if (from || to) p.filter_public_timestamp = `${from?'from:'+from:''}${from&&to?',':''}${to?'to:'+to:''}`;
+  return p;
+}
+
+function getCustomsParams() {
+  const q = document.getElementById('c-q').value.trim() || 'customs procedure codes';
+  const p = { q, count: document.getElementById('c-count').value, order: '-public_timestamp' };
+  const org = document.getElementById('c-org').value;
+  if (org) p.filter_organisations = org;
+  return p;
+}
+
+function getUpdatesParams() {
+  const days = parseInt(document.getElementById('u-since').value);
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const dateStr = since.toISOString().split('T')[0];
+  const p = { count: document.getElementById('u-count').value, order: '-public_timestamp', filter_public_timestamp: `from:${dateStr}` };
+  const q = document.getElementById('u-q').value.trim();
+  if (q) p.q = q;
+  const org = document.getElementById('u-org').value;
+  if (org) p.filter_organisations = org;
+  const fmt = document.getElementById('u-format').value;
+  if (fmt) p.filter_format = fmt;
+  return p;
+}
+
+function getAggParams() {
+  const field = document.getElementById('ag-field').value;
+  const limit = document.getElementById('ag-limit').value;
+  const q = document.getElementById('ag-q').value.trim();
+  const org = document.getElementById('ag-org').value;
+  const p = { count: 0 };
+  if (q) p.q = q;
+  p[`aggregate_${field}`] = limit;
+  if (org) p.filter_organisations = org;
+  return p;
+}
+
+function getRawURL() {
+  const lines = document.getElementById('r-params').value
+    .split('\n').filter(l => l.trim() && l.includes('='));
+  const parts = lines.map(l => {
+    const idx = l.indexOf('=');
+    const k = l.slice(0, idx).trim();
+    const v = l.slice(idx + 1).trim();
+    return `${encodeURIComponent(k)}=${encodeURIComponent(v)}`;
+  });
+  return BASE + '?' + parts.join('&');
+}
+
+// ── LIVE PREVIEW ─────────────────────────────────────────────
+function updateAllPreviews() {
+  try { renderURL('s-url', buildURL(getSearchParams())); } catch(e){}
+  try { renderURL('c-url', buildURL(getCustomsParams())); } catch(e){}
+  try { renderURL('u-url', buildURL(getUpdatesParams())); } catch(e){}
+  try { renderURL('ag-url', buildURL(getAggParams())); } catch(e){}
+  try {
+    const u = getRawURL();
+    renderURL('r-url', u);
+    document.getElementById('r-url').dataset.url = u;
+  } catch(e){}
+}
+
+function updateRawPreview() {
+  try {
+    const u = getRawURL();
+    renderURL('r-url', u);
+    document.getElementById('r-url').dataset.url = u;
+  } catch(e){}
+}
+
+// ── API FETCH ────────────────────────────────────────────────
+async function fetchAPI(url, statusEl) {
+  setStatus(statusEl, 'loading', '⟳ Querying GOV.UK API...');
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} — check your parameters`);
+  return res.json();
+}
+
+function setStatus(el, type, msg) {
+  el.style.display = 'block';
+  el.className = 'status-bar ' + type;
+  el.textContent = msg;
+}
+
+// ── RENDER RESULTS ───────────────────────────────────────────
+function renderResults(results, container, statusEl, countEl, total) {
+  if (countEl) countEl.textContent = total ? `${total.toLocaleString()} total results` : '';
+  if (!results || results.length === 0) {
+    container.innerHTML = '<div class="no-results">No results found.<br><span style="font-size:11px">Try broadening your search or removing filters.</span></div>';
+    setStatus(statusEl, 'err', '✗ No results returned');
+    return;
+  }
+  setStatus(statusEl, 'ok', `✓ Showing ${results.length}${total ? ' of ' + total.toLocaleString() : ''}`);
+  container.innerHTML = results.map(r => {
+    const orgs = (r.organisations || []).map(o => o.title || o).filter(Boolean);
+    const isHMRC = (r.organisations || []).some(o => (o.slug || '') === 'hm-revenue-customs');
+    const date = r.public_timestamp ? new Date(r.public_timestamp).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '';
+    const docType = r.document_type || r.format || '';
+    const url = r.link ? 'https://www.gov.uk' + r.link : '#';
+    return `<a class="result-card" href="${url}" target="_blank" rel="noopener">
+      <div class="result-title">${escHtml(r.title || r.link)}</div>
+      ${r.description ? `<div class="result-desc">${escHtml(r.description)}</div>` : ''}
+      <div class="result-meta">
+        ${docType ? `<span class="tag">${escHtml(docType)}</span>` : ''}
+        ${isHMRC ? `<span class="tag green">HMRC</span>` : orgs.length ? `<span class="tag">${escHtml(orgs[0])}</span>` : ''}
+        <span class="result-date">${date}</span>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── SEARCH TAB ───────────────────────────────────────────────
+async function runSearch(start = 0) {
+  const statusEl = document.getElementById('s-status');
+  const resultsEl = document.getElementById('s-results');
+  const countEl = document.getElementById('s-count-label');
+  const pagingEl = document.getElementById('s-paging');
+  try {
+    const params = getSearchParams(start);
+    const url = buildURL(params);
+    const data = await fetchAPI(url, statusEl);
+    const total = data.total || 0;
+    const count = parseInt(params.count);
+    renderResults(data.results, resultsEl, statusEl, countEl, total);
+    // Pagination
+    const pages = Math.ceil(total / count);
+    const currentPage = Math.floor(start / count);
+    if (pages > 1) {
+      let paging = '<div class="pagination">';
+      paging += `<button class="page-btn" onclick="runSearch(${Math.max(0,(currentPage-1)*count)})" ${currentPage===0?'disabled':''}>← Prev</button>`;
+      for (let i = 0; i < Math.min(pages, 8); i++) {
+        paging += `<button class="page-btn ${i===currentPage?'active':''}" onclick="runSearch(${i*count})">${i+1}</button>`;
+      }
+      if (pages > 8) paging += `<span style="color:var(--muted);font-size:12px">… ${pages} pages</span>`;
+      paging += `<button class="page-btn" onclick="runSearch(${Math.min((pages-1)*count,(currentPage+1)*count)})" ${currentPage>=pages-1?'disabled':''}>Next →</button>`;
+      paging += '</div>';
+      pagingEl.innerHTML = paging;
+    } else {
+      pagingEl.innerHTML = '';
+    }
+  } catch(e) {
+    setStatus(statusEl, 'err', '✗ ' + e.message);
+  }
+}
+
+// ── CUSTOMS TAB ──────────────────────────────────────────────
+function customs(q) {
+  document.getElementById('c-q').value = q;
+  updateAllPreviews();
+  runCustomsSearch();
+}
+
+async function runCustomsSearch() {
+  const statusEl = document.getElementById('c-status');
+  const resultsEl = document.getElementById('c-results');
+  const countEl = document.getElementById('c-count-label');
+  try {
+    const params = getCustomsParams();
+    const url = buildURL(params);
+    const data = await fetchAPI(url, statusEl);
+    renderResults(data.results, resultsEl, statusEl, countEl, data.total);
+  } catch(e) {
+    setStatus(statusEl, 'err', '✗ ' + e.message);
+  }
+}
+
+// ── UPDATES TAB ──────────────────────────────────────────────
+async function runUpdates() {
+  const statusEl = document.getElementById('u-status');
+  const resultsEl = document.getElementById('u-results');
+  const countEl = document.getElementById('u-count-label');
+  try {
+    const params = getUpdatesParams();
+    const url = buildURL(params);
+    const data = await fetchAPI(url, statusEl);
+    renderResults(data.results, resultsEl, statusEl, countEl, data.total);
+  } catch(e) {
+    setStatus(statusEl, 'err', '✗ ' + e.message);
+  }
+}
+
+// ── AGGREGATIONS TAB ─────────────────────────────────────────
+async function runAgg() {
+  const statusEl = document.getElementById('ag-status');
+  const resultsEl = document.getElementById('ag-results');
+  try {
+    const field = document.getElementById('ag-field').value;
+    const params = getAggParams();
+    const url = buildURL(params);
+    const data = await fetchAPI(url, statusEl);
+    // Handle different response shapes
+    const aggData = data.aggregates?.[field] || data.facets?.[field];
+    const options = aggData?.options || aggData?.value?.options || [];
+    if (!options.length) {
+      resultsEl.innerHTML = '<div class="no-results">No aggregation data returned for this field.</div>';
+      setStatus(statusEl, 'err', '✗ No data');
+      return;
+    }
+    const max = Math.max(...options.map(a => a.documents || 0), 1);
+    setStatus(statusEl, 'ok', `✓ ${options.length} groups`);
+    resultsEl.innerHTML = `
+      <div style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Grouped by: <strong>${field}</strong></div>
+        <div style="font-size:11px;color:var(--muted)">Matching query: "${document.getElementById('ag-q').value}"</div>
+      </div>` +
+      options.map(a => {
+        const label = a.value?.title || a.value?.slug || a.value?.label || String(a.value) || '—';
+        const count = a.documents || 0;
+        const pct = (count / max * 100).toFixed(1);
+        return `<div class="agg-item">
+          <div class="agg-label" title="${escHtml(label)}">${escHtml(label)}</div>
+          <div class="agg-bar-wrap"><div class="agg-bar" style="width:${pct}%"></div></div>
+          <div class="agg-count">${count.toLocaleString()}</div>
+        </div>`;
+      }).join('');
+  } catch(e) {
+    setStatus(statusEl, 'err', '✗ ' + e.message);
+  }
+}
+
+// ── RAW TAB ──────────────────────────────────────────────────
+async function runRaw() {
+  const statusEl = document.getElementById('r-status');
+  const jsonEl = document.getElementById('r-json');
+  try {
+    const url = getRawURL();
+    renderURL('r-url', url);
+    const data = await fetchAPI(url, statusEl);
+    setStatus(statusEl, 'ok', `✓ ${data.total?.toLocaleString() || '?'} total · ${data.results?.length || 0} returned`);
+    jsonEl.innerHTML = `<div class="json-view">${escHtml(JSON.stringify(data, null, 2))}</div>`;
+  } catch(e) {
+    setStatus(statusEl, 'err', '✗ ' + e.message);
+    jsonEl.innerHTML = '';
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+updateAllPreviews();
+</script>
+</body>
+</html>
