@@ -1,0 +1,17 @@
+flowchart TD
+    A["Client quoted\nInitial outreach to supplier done"]
+    B["Supplier reviews CI\nConfirms 15 NOCs required @ $300 each"]
+    C["Client removes 11 NOC items\nUpdated CI resubmitted to supplier"]
+    D["2 new items added to CI\nRevised CI submitted to supplier"]
+    E["Supplier re-assesses\nNow advises 20 NOCs required"]
+    F["Pushback on NOC count\nSupplier accepts 18 NOCs after negotiation"]
+    G["Deviation - supplier missed 12 NOCs\nIdentified after several follow-ups and delayed responses"]
+    H["Impact\nInaccurate quoting - Delays in feedback\nFriction in client and supplier relationships"]
+    I["Resolution steps\nStern email requesting explanation\nEscalation: Cath called supplier\nBrainstorming preventive solutions"]
+    J["Pending - with compliance"]
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J
+
+    style G fill:#FCEBEB,stroke:#A32D2D,color:#501313
+    style H fill:#FAECE7,stroke:#993C1D,color:#4A1B0C
+    style I fill:#EEEDFE,stroke:#534AB7,color:#26215C
